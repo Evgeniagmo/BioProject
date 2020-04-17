@@ -162,6 +162,7 @@ public:
 private:
 	State m_state = State::healthy;
 	std::vector<Cell*> neighbors;
+	bool m_flag = false;
 
 public:
 
@@ -189,6 +190,16 @@ public:
 	auto next_state()
 	{
 		// cellular automaton
+	}
+
+	bool get_flag()
+	{
+		return m_flag;
+	}
+
+	void set_flag(bool flag)
+	{
+		m_flag = flag;
 	}
 
 	virtual void next_pos() const override
@@ -227,10 +238,7 @@ public:
 
 	virtual void set_direction() const = 0;
 
-	virtual void next_pos() const override = 0
-	{
-		// function call for each node
-	}
+	virtual void next_pos() const override = 0;
 };
 
 class Lymphocyte : public ImmuneCell
@@ -250,11 +258,8 @@ public:
 		// normal area determination
 	}
 
-	bool sensor()
-	{
-		// checking cells for infected
-			//if the distance to the center is less than the search radius & state: ill or recovered
-	}
+	bool sensor(const WorkingSpace& tissue);		// checking cells for infected
+						//if the distance to the center is less than the search radius & state: ill or recovered
 
 	virtual void set_direction() const override
 	{
@@ -340,18 +345,28 @@ void StableCell::get_neighbors(const WorkingSpace& tissue)
 	std::vector<Cell*> neighbors;
 	for_each(tissue.all_stable.cbegin(), tissue.all_stable.cend(),
 		[](StableCell* cell) {
-			if (distance(m_centre, cell->get_centre) < tissue.search_radius)
+			if (distance(m_centre, cell->get_centre()) < tissue.search_radius)
 				neighbors.push_back(cell);
 		});
 	m_neighbors = neighbors;
+}
+
+void Lymphocyte::sensor(const WorkingSpace& tissue)
+{
+	for_each(tissue.all_stable.cbegin(), tissue.all_stable.cend(),
+		[](StableCell* cell) {
+			if ((distance(m_centre, cell->get_centre()) < tissue.search_radius) &
+				((cell->get_state() == StableCell::State::ill) | (cell->get_state() == StableCell::State::recovered))
+				cell->set_flag(true);
+		});
 }
 
 void Fagocyte::kill(const WorkingSpace& tissue)
 {
 	tissue.all_stable.erase(remove_if(tissue.all_stable.begin(), tissue.all_stable.end(),
 		[](StableCell* cell) {
-			return (distance(m_centre, cell->get_centre) < tissue.search_radius) &
-				(cell->get_state() = StableCell::State::ill | cell->get_state() = StableCell::State::recovered;
+			return (distance(m_centre, cell->get_centre()) < tissue.search_radius) &
+				(cell->get_flag() = true);
 					}),
 				tissue.all_stable.end());
 }
