@@ -6,11 +6,11 @@
 
 using t_point = std::pair <double, double>;
 
-//double distance(Node left, Node right)
-//{
-//	return sqrt(pow(left.get_pos().first - right.get_pos().first)
-//		+ pow(left.get_pos().second - right.get_pos().second));
-//}
+double distance(t_point left, t_point right)
+{
+	return sqrt(pow(left.first - right.first)
+		+ pow(left.second - right.second));
+}
 
 class Link
 {
@@ -196,7 +196,7 @@ public:
 		// function call for each node
 	}
 
-	std::vector<Cell*> get_neighbors() // search for stable neighbors for an automaton
+	void get_neighbors() // search for stable neighbors for an automaton
 	{
 		// the centers of cells are checked, the distance to which is less than the radius of search
 	}
@@ -312,11 +312,12 @@ class WorkingSpace
 {
 public:
 
-	std::vector<Cell*> epithelium, basale, fibroblasts,
-		lymphocytes, fagocytes;
+	std::vector<Cell*> all_stable, all_lymphocytes, all_fagocytes;
 
-	std::vector< std::vector< Cell* > > all_types = { epithelium, basale,
-					fibroblasts, lymphocytes, fagocytes };
+	/*std::vector< std::vector< Cell* > > all_types = { epithelium, basale,
+					fibroblasts, lymphocytes, fagocytes };*/
+
+	const double search_radius = 0; // 1.5 link length
 
 
 	// time control
@@ -336,6 +337,17 @@ public:
 
 	void calc_next_pos() {}
 };
+
+void StableCell::get_neighbors(const WorkingSpace& tissue)
+{
+	std::vector<Cell*> neighbors;
+	for_each(tissue.all_stable.cbegin(), tissue.all_stable.cend(),
+		[](StableCell* cell) {
+			if (distance(m_centre, cell->get_centre) < tissue.search_radius)
+				neighbors.push_back(cell);
+		});
+	m_neighbors = neighbors;
+}
 
 auto StableCell::next_state()
 {
