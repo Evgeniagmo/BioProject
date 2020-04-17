@@ -301,10 +301,7 @@ public:
 			// + adding vector of velocity
 	}
 
-	void kill(const Cell& cell)
-	{
-		// cell removal from the cell array
-	}
+	void kill(const WorkingSpace& tissue);
 
 };
 
@@ -347,6 +344,16 @@ void StableCell::get_neighbors(const WorkingSpace& tissue)
 				neighbors.push_back(cell);
 		});
 	m_neighbors = neighbors;
+}
+
+void Fagocyte::kill(const WorkingSpace& tissue)
+{
+	tissue.all_stable.erase(remove_if(tissue.all_stable.begin(), tissue.all_stable.end(),
+		[](StableCell* cell) {
+			return (distance(m_centre, cell->get_centre) < tissue.search_radius) &
+				(cell->get_state() = StableCell::State::ill | cell->get_state() = StableCell::State::recovered;
+					}),
+				tissue.all_stable.end());
 }
 
 auto StableCell::next_state()
