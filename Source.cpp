@@ -229,7 +229,7 @@ public:
 
 	virtual ~ImmuneCell() = default;
 
-	virtual void set_direction() const = 0;
+	virtual t_point set_direction(const WorkingSpace& tissue) const = 0;
 
 	virtual void next_pos() const override = 0
 	{
@@ -257,7 +257,7 @@ public:
 	void sensor(const WorkingSpace& tissue);	// searching for ill or recovered cells
 												// distance(m_centre, cell_centre) < search_radius
 
-	virtual void set_direction() const override
+	virtual t_point set_direction(const WorkingSpace& tissue) const override
 	{
 		// random direction
 	}
@@ -290,11 +290,7 @@ public:
 		// m_area
 	}
 
-	virtual void set_direction() const override
-	{
-		// searching for the lymphocytes
-			// center of their mass
-	}
+	virtual t_point set_direction(const WorkingSpace& tissue) const override;
 
 	virtual void next_pos() const override
 	{
@@ -319,6 +315,8 @@ public:
 					fibroblasts, lymphocytes, fagocytes };*/
 
 	const double search_radius = 0; // 1.5 link length
+
+	t_point left_bottom, right_top;
 
 
 	// time control
@@ -353,6 +351,30 @@ void Lymphocyte::sensor(const WorkingSpace& tissue)
 				((cell->get_state() == StableCell::State::ill) || (cell->get_state() == StableCell::State::recovered)))
 				cell->set_flag(true);
 		});
+}
+
+t_point Lymphocyte::set_direction(const WorkingSpace& tissue) const
+{
+	t_point new_direction = std::make_pair(0, 0);
+	std::default_random_engine dre;
+	std::uniform_int_distribution<double> di_first(tissue.left_bottom.first, tissue.right_top.first);
+	std::uniform_int_distribution<double> di_second(tissue.left_bottom.second, tissue.right_top.second);
+	new_direction.first = di_first(dre);
+	new_direction.second = di_second(dre);
+
+	return new_direction;
+}
+
+t_point Fagocyte::set_direction(const WorkingSpace& tissue) const
+{
+	t_point center_of_mass = std::make_pair(0, 0);
+	double quantity = tissue.all_fagocytes.size();
+	for (Cell* fagocyte : tissue.all_fagocytes)
+	{
+		center_of_mass.first += fagocyte->get_centre().first / quantity;
+		center_of_mass.second += fagocyte->get_centre().second / quantity;
+	}
+	return center_of_mass;
 }
 
 void Fagocyte::kill(const WorkingSpace& tissue)
