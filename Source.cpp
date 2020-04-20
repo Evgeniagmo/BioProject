@@ -1,15 +1,18 @@
 #include <cmath>
 #include <iostream>
+#include <random>
 #include <string>
 #include <vector>
 
 using t_point = std::pair <double, double>;
 
-//double distance(Node left, Node right)
-//{
-//	return sqrt(pow(left.get_pos().first - right.get_pos().first)
-//		+ pow(left.get_pos().second - right.get_pos().second));
-//}
+double distance(t_point left, t_point right)
+{
+	return sqrt(pow(left.first - right.first)
+		+ pow(left.second - right.second));
+}
+
+class Node;
 
 class Link
 {
@@ -36,7 +39,7 @@ public:
 
 	void set_length()
 	{
-		m_length = distance(l_node, r_node);
+		m_length = distance(l_node.get_pos(), r_node.get_pos());
 	}
 
 	Node get_left_node()
@@ -140,10 +143,10 @@ public:
 
 	virtual void next_pos() const = 0;
 
-	// F_gravitation() притяжение для каждого ребра
-	// F_repulsion() отталкивание для каждого ребра
-	// F_restoring() упругость для каждого узла
-	// F_pressure() внутреннее давление для каждого узла
+	// F_gravitation() gravitation for each link
+	// F_repulsion() repulsion for each link
+	// F_restoring() restoring force for each node
+	// F_pressure() internal pressure for each node
 
 
 };
@@ -160,19 +163,20 @@ public:
 	};
 private:
 	State m_state = State::healthy;
-	std::vector<Cell*> neighbors;
+	std::vector<Cell*> m_neighbors;
+	bool m_flag = false;
 
 public:
-	
+
 	StableCell() {}
 
-	// по узлам
+	// via nodes
 	StableCell(const std::vector<Node>& points)
 	{
 		nodes = points;
-		
-		// создание ребер и выставление левых-правых
-		// определение нормальной площади
+
+		// creating links and setting left and right
+		// m_area
 	}
 
 	State get_state()
@@ -185,29 +189,29 @@ public:
 		m_state = state;
 	}
 
-	void next_state()
+	auto next_state(const WorkingSpace& tissue)
 	{
-		// клеточный автомат, алгоритм метрополиса 
+		// cellular automation
+	}
+
+	bool get_flag()
+	{
+		return m_flag;
+	}
+
+	void set_flag(bool flag)
+	{
+		m_flag = flag;
 	}
 
 	virtual void next_pos() const override
 	{
-		// вызов функций для каждого узла
-	}
-	 
-	std::vector<Cell*> get_neighbors() // поиск соседних неподвижных клеток для автомата
-	{
-		// проверяются центры клеток, расстояние до которых
-			// меньше радиуса поиска
+		// function call for each node
 	}
 
-	std::size_t count_ill_neighbors() // для клеточного автомата
+	void get_neighbors(const WorkingSpace& tissue) // searching for stablecells for automation
 	{
-		// ...
-	}
-	std::size_t count_recovered_neighbors() // для клеточного автомата
-	{
-		// ...
+		// distance(m_centre, cell_centre) < search_radius
 	}
 
 };
@@ -216,8 +220,8 @@ class ImmuneCell : public Cell
 {
 protected:
 
-	double m_speed;			// модуль собственной скорости
-	t_point m_direction;	// направление вектора собственной скорости
+	double m_velocity;			// the absolute value for velocity
+	t_point m_direction;	// direction for velocity
 
 public:
 
@@ -229,7 +233,7 @@ public:
 
 	virtual void next_pos() const override = 0
 	{
-		// вызов функций для каждого узла
+		// function call for each node
 	}
 };
 
@@ -237,39 +241,36 @@ class Lymphocyte : public ImmuneCell
 {
 
 public:
-	 
+
 	Lymphocyte() {}
 
-	// по узлам и скорости
-	Lymphocyte(const std::vector<Node>& points, double speed)
+	// via nodes and velocity
+	Lymphocyte(const std::vector<Node>& points, double velocity)
 	{
-		m_speed = speed;
+		m_velocity = velocity;
 		nodes = points;
 
-		// создание ребер и выставление левых-правых
-		// определение нормальной площади
+		// creating links and setting left and right
+		// m_area
 	}
 
-	bool sensor()
-	{
-		// проверка клеток на наличие зараженных
-			//если расстояние до центра меньше радиуса поиска И состояние: ill или recovered
-	}
+	void sensor(const WorkingSpace& tissue);	// searching for ill or recovered cells
+												// distance(m_centre, cell_centre) < search_radius
 
 	virtual void set_direction() const override
 	{
-		// случайное направление
+		// random direction
 	}
 
-	void set_speed()
+	void set_velocity()
 	{
-		// установление скорости при наличии зараженных клеток рядом
+		// changing velocity in case of ill cells nearby
 	}
 
 	virtual void next_pos() const override
 	{
-		// вызов функций для каждого узла
-			// + добавление ненаправленного собственного вектора
+		// function call for each node
+			// add m_velosity
 	}
 };
 
@@ -279,31 +280,31 @@ public:
 
 	Fagocyte() {}
 
-	// по узлам и скорости
-	Fagocyte(const std::vector<Node>& points, double speed)
+	// via nodes and velocity
+	Fagocyte(const std::vector<Node>& points, double velocity)
 	{
-		m_speed = speed;
+		m_velocity = velocity;
 		nodes = points;
 
-		// создание ребер и выставление левых-правых
-		// определение нормальной площади
+		// creating links and setting left and right
+		// m_area
 	}
-	
+
 	virtual void set_direction() const override
 	{
-		// нужен доступ к списку лимфоцитов и их центрам
-			// берется их центр масс
+		// searching for the lymphocytes
+			// center of their mass
 	}
 
 	virtual void next_pos() const override
 	{
-		// вызов функций для каждого узла
-			// + добавление направленного собственного вектора
+		// function call for each node
+			// add m_velosity
 	}
 
-	void kill(const Cell& cell)
+	void kill(const WorkingSpace& tissue)
 	{
-		// удаление клетки из массива клеток
+		// delete ill or recovered cells
 	}
 
 };
@@ -312,13 +313,14 @@ class WorkingSpace
 {
 public:
 
-	std::vector<Cell*> epithelium, basale, fibroblasts,
-		lymphocytes, fagocytes;
-	
-	std::vector< std::vector< Cell* > > all_types = { epithelium, basale,
-					fibroblasts, lymphocytes, fagocytes };
-	
-	
+	std::vector<Cell*> all_stable, all_lymphocytes, all_fagocytes;
+
+	/*std::vector< std::vector< Cell* > > all_types = { epithelium, basale,
+					fibroblasts, lymphocytes, fagocytes };*/
+
+	const double search_radius = 0; // 1.5 link length
+
+
 	// time control
 
 };
@@ -331,3 +333,100 @@ public:
 
 	void calc_next_pos() {}
 };
+
+void StableCell::get_neighbors(const WorkingSpace& tissue)
+{
+	std::vector<Cell*> neighbors;
+	for_each(tissue.all_stable.cbegin(), tissue.all_stable.cend(),
+		[neighbors, tissue, this](Cell* cell) {
+			if (distance(m_centre, cell->get_centre()) < tissue.search_radius)
+				neighbors.push_back(cell);
+		});
+	m_neighbors = neighbors;
+}
+
+void Lymphocyte::sensor(const WorkingSpace& tissue)
+{
+	for_each(tissue.all_stable.cbegin(), tissue.all_stable.cend(),
+		[tissue, this](StableCell* cell) {
+			if ((distance(m_centre, cell->get_centre()) < tissue.search_radius) &&
+				((cell->get_state() == StableCell::State::ill) || (cell->get_state() == StableCell::State::recovered)))
+				cell->set_flag(true);
+		});
+}
+
+void Fagocyte::kill(const WorkingSpace& tissue)
+{
+	tissue.all_stable.erase(remove_if(tissue.all_stable.begin(), tissue.all_stable.end(),
+		[tissue, this](StableCell* cell) {
+			return ((distance(m_centre, cell->get_centre) < tissue.search_radius) &&
+				(cell->get_flag() == true));
+		}),
+		tissue.all_stable.end());
+}
+
+auto StableCell::next_state(const WorkingSpace& tissue)
+{
+	int new_state;
+	State next_state;
+
+	std::default_random_engine dre;
+	std::uniform_int_distribution<int> di(1, 4);
+	new_state = di(dre);
+	if (m_state == State::ill)
+	{
+		switch (new_state)
+		{
+		case 1:
+			return m_state;
+		case 3:
+			// depends on the virus traits
+		case 4:
+			// depends on the virus traits and time
+		case 2:
+			// 
+		}
+	}
+
+	int counter_ill = 0;
+	double concentration = 0;
+	get_neighbors(tissue);
+	for_each(m_neighbors.cbegin(), m_neighbors.cend(),
+		[this, counter_ill](StableCell* neighbor) {
+			if (neighbor->get_state() == State::ill)
+				counter_ill += 1;
+		});
+	concentration = counter_ill / m_neighbors.size();
+
+	if (m_state == State::healthy)
+	{
+		switch (new_state)
+		{
+		case 2:
+			if (concentration > 0, 5)
+				// depends on the virus traits, its concentration, number of ill
+		case 3:
+			return m_state;
+		case 4:
+			// depends on time
+		case 1:
+			// 
+		}
+	}
+	if (m_state == State::healthy)
+	{
+		switch (new_state)
+		{
+		case 1:
+			return m_state;
+		case 2:
+			// depends on the virus traits, its concentration, number of ill
+		case 4:
+			// depends on the virus traits and time
+		case 3:
+			// 
+		}
+	}
+
+
+}
