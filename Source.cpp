@@ -42,7 +42,7 @@ public:
 		m_length = distance(l_node.get_pos(), r_node.get_pos());
 	}
 
-	Node get_left_node()
+	Node get_left_node() const
 	{
 		return l_node;
 	}
@@ -52,7 +52,7 @@ public:
 		l_node = new_left;
 	}
 
-	Node get_right_node()
+	Node get_right_node() const
 	{
 		return r_node;
 	}
@@ -82,7 +82,7 @@ public:
 
 	~Node() {};
 
-	t_point get_pos()
+	t_point get_pos() const
 	{
 		return m_pos;
 	}
@@ -92,7 +92,7 @@ public:
 		m_pos = pos;
 	}
 
-	Link get_left_link()
+	Link get_left_link() const
 	{
 		return l_link;
 	}
@@ -102,7 +102,7 @@ public:
 		l_link = new_left;
 	}
 
-	Link get_right_link()
+	Link get_right_link() const
 	{
 		return r_link;
 	}
@@ -126,7 +126,11 @@ protected:
 private:
 	void set_centre()
 	{
-		// m_centre = "центр масс"
+		for (const Node& node : nodes)
+		{
+			m_centre.first += node.get_pos().first / nodes.size();
+			m_centre.second += node.get_pos().second / nodes.size();
+		}
 	}
 
 public:
@@ -134,12 +138,25 @@ public:
 
 	virtual ~Cell() = default;
 
-	t_point get_centre()
+	t_point get_centre() const
 	{
 		return this->m_centre;
 	}
 
-	double get_area() {} // текущая площадь
+	double get_area()
+	{
+		double area = 0.0;
+
+		std::size_t j = nodes.size() - 1;
+		for (std::size_t i = 0; i < nodes.size(); i++)
+		{
+			area += (nodes[j].get_pos().first + nodes[i].get_pos().first) *
+				(nodes[j].get_pos().second + nodes[i].get_pos().second);
+			j = i;
+		}
+
+		return abs(area / 2.0);
+	}
 
 	virtual void next_pos() const = 0;
 
