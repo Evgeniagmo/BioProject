@@ -8,8 +8,12 @@ using t_point = std::pair <double, double>;
 
 double distance(t_point left, t_point right)
 {
-	return sqrt(pow(left.first - right.first)
-		+ pow(left.second - right.second));
+	return std::hypot((left.first - right.first), (left.second - right.second));
+}
+
+t_point make_vector(t_point init, t_point final) //creating vector directed from initial point to final point
+{
+	return std::make_pair((final.first - init.first), (final.second - init.second));
 }
 
 class Node;
@@ -70,6 +74,7 @@ private:
 
 	t_point m_pos;
 	Link l_link, r_link;
+	t_point m_displacement; // for movement on each iteraction
 
 public:
 
@@ -78,6 +83,11 @@ public:
 	Node(const t_point& pos) : m_pos(pos)
 	{
 		// и ребра задаются
+	}
+
+	Node(double first, double second)
+	{
+		m_pos = std::make_pair(first, second);
 	}
 
 	~Node() {};
@@ -111,6 +121,17 @@ public:
 	{
 		r_link = new_right;
 	}
+
+	t_point get_displacement() const
+	{
+		return m_displacement;
+	}
+
+	void add_displacement(t_point displacement)
+	{
+		m_displacement.first += displacement.first;
+		m_displacement.second += displacement.second;
+	}
 };
 
 class Cell
@@ -138,6 +159,11 @@ public:
 
 	virtual ~Cell() = default;
 
+	std::vector <Node> get_nodes() const
+	{
+		return nodes;
+	}
+
 	t_point get_centre() const
 	{
 		return this->m_centre;
@@ -160,9 +186,26 @@ public:
 
 	virtual void next_pos() const = 0;
 
+	void f_pressure()
+	{
+		for_each(get_nodes().begin(), get_nodes().cend(),
+			[this](Node node) {
+				// coefficient of compression
+				double coef = get_area() / m_area;
+
+				// current vector directed from the node
+				t_point vect_end = make_vector(node.get_pos(), m_centre);
+
+				// displacement
+				vect_end.first -= vect_end.first / coef;
+				vect_end.second -= vect_end.second / coef;
+				node.add_displacement(vect_end);
+			});
+	}
+
 	// F_gravitation() gravitation for each link
 	// F_repulsion() repulsion for each link
-	// F_restoring() restoring force for each node
+	// f_restoring() restoring force for each node
 	// F_pressure() internal pressure for each node
 
 
@@ -191,6 +234,21 @@ public:
 	StableCell(const std::vector<Node>& points)
 	{
 		nodes = points;
+
+		// creating links and setting left and right
+		// m_area
+	}
+
+	StableCell(const Node& right_top)
+	{
+		nodes.push_back(right_top);
+
+		Node left_top = Node((right_top.get_pos().first - 12.7), right_top.get_pos().second);
+		nodes.push_back(left_top);
+		Node left_bottom = Node(left_top.get_pos().first, (left_top.get_pos().second - 12.7));
+		nodes.push_back(left_bottom);
+		Node right_bottom = Node(right_top.get_pos().first, left_bottom.get_pos().second);
+		nodes.push_back(right_bottom);
 
 		// creating links and setting left and right
 		// m_area
@@ -226,10 +284,8 @@ public:
 		// function call for each node
 	}
 
-	void get_neighbors(const WorkingSpace& tissue) // searching for stablecells for automation
-	{
-		// distance(m_centre, cell_centre) < search_radius
-	}
+	void get_neighbors(const WorkingSpace& tissue); // searching for stablecells for automation
+								// distance(m_centre, cell_centre) < search_radius
 
 };
 
@@ -274,10 +330,7 @@ public:
 	void sensor(const WorkingSpace& tissue);	// searching for ill or recovered cells
 												// distance(m_centre, cell_centre) < search_radius
 
-	virtual t_point set_direction(const WorkingSpace& tissue) const override
-	{
-		// random direction
-	}
+	virtual t_point set_direction(const WorkingSpace& tissue) const override;		// random direction
 
 	void set_velocity()
 	{
@@ -315,10 +368,7 @@ public:
 			// add m_velosity
 	}
 
-	void kill(const WorkingSpace& tissue)
-	{
-		// delete ill or recovered cells
-	}
+	void kill(const WorkingSpace& tissue);		// delete ill or recovered cells
 
 };
 
@@ -332,6 +382,8 @@ public:
 					fibroblasts, lymphocytes, fagocytes };*/
 
 	const double search_radius = 0; // 1.5 link length
+
+	double epithelial_cell_size; // <L> = 12,7 microns
 
 	t_point left_bottom, right_top;
 
