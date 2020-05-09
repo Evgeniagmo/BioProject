@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cmath>
+#include <chrono>
 #include <vector>
 
 #include "node.h"
@@ -56,6 +57,7 @@ public:
 class StableCell : public Cell
 {
 public:
+	using stable_cell_t = std::shared_ptr < StableCell >;
 	enum class State
 	{
 		healthy,
@@ -81,7 +83,7 @@ public:
 	//	// m_area
 	//}
 
-	StableCell(const Node& right_top)
+	StableCell(const Node& left_top)
 	{
 		// ...
 	}
@@ -111,10 +113,11 @@ public:
 	void get_neighbors(const WorkingSpace& tissue) noexcept;
 
 	// cellular automation
-	auto next_state(const WorkingSpace& tissue)  noexcept;
-	
+	auto next_state(const std::chrono::milliseconds& timer,
+		const std::vector< stable_cell_t >& neighbors) noexcept;
+
 	// function call for each node
-	virtual void next_pos() const noexcept override
+	virtual void next_pos() const noexcept override;
 
 };
 
@@ -161,7 +164,7 @@ public:
 
 	// searching for ill or recovered cells
 	// distance(m_centre, cell_centre) < search_radius
-	void sensor(const WorkingSpace& tissue) noexcept = default;
+	void sensor(const WorkingSpace& tissue) noexcept;
 
 	// function call for each node
 	// add m_velosity

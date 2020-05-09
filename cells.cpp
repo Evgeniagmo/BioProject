@@ -1,3 +1,6 @@
+#include <vector>
+#include <random>
+
 #include "cells.h"
 
 void Cell::set_centre() noexcept
@@ -61,7 +64,8 @@ void StableCell::get_neighbors(const WorkingSpace& tissue) noexcept
 	m_neighbors = neighbors;
 }
 
-auto StableCell::next_state(const WorkingSpace& tissue) noexcept
+auto StableCell::next_state(const std::chrono::milliseconds& timer
+	const std::vector< stable_cell_t >& neighbors) noexcept
 {
 	int new_state;
 	State next_state;
@@ -125,7 +129,7 @@ auto StableCell::next_state(const WorkingSpace& tissue) noexcept
 	}
 }
 
-virtual void StableCell::next_pos() const noexcept override
+void StableCell::next_pos() const noexcept
 {}
 
 t_point Lymphocyte::set_direction(const WorkingSpace& tissue) const
@@ -153,10 +157,10 @@ void Lymphocyte::sensor(const WorkingSpace& tissue)
 		});
 }
 
-virtual void Lymphocyte::next_pos() const noexcept override
+void Lymphocyte::next_pos() const noexcept
 {}
 
-virtual t_point Fagocyte::set_direction(const WorkingSpace& tissue) const noexcept override
+t_point Fagocyte::set_direction(const WorkingSpace& tissue) const noexcept
 {
 	t_point center_of_mass = std::make_pair(0, 0);
 	double quantity = tissue.all_fagocytes.size();
@@ -178,5 +182,5 @@ void Fagocyte::kill(const WorkingSpace& tissue) noexcept
 		tissue.all_stable.end());
 }
 
-virtual void Fagocyte::next_pos() const noexcept override
+void Fagocyte::next_pos() const noexcept
 {}
