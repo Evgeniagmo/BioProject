@@ -2,6 +2,7 @@
 
 #include <cmath>
 #include <chrono>
+#include <memory>
 #include <vector>
 
 #include "node.h"
@@ -10,54 +11,54 @@
 
 class Cell
 {
+public:
+	using point_t = std::pair <double, double>;
+	using node_t = std::shared_ptr < Node >;
+	using stable_cell_t = std::shared_ptr < StableCell >;
 
 protected:
-	std::vector <Node> nodes;
-	std::vector <Link> links;
+	std::vector <node_t> m_nodes;
+	std::vector <Link> m_links;
 
 	double m_area;
-	t_point m_centre;
-
-private:
-	void set_centre() noexcept;
 
 public:
 	Cell() noexcept = default;
 
 	virtual ~Cell() noexcept = default;
 
-	const std::vector <Node> get_nodes() const noexcept
-	{
-		return nodes;
-	}
+private:
 
-	const t_point get_centre() const noexcept
-	{
-		return this->m_centre;
-	}
+	double count_area() const noexcept;
 
-	double get_area() noexcept;
+public:
+
+	point_t count_centre() const noexcept;
+
+	const std::vector <node_t> get_nodes() const noexcept
+	{
+		return m_nodes;
+	}
 
 	virtual void next_pos() const noexcept = 0;
 
-	void f_gravitation() noexcept;
+	// f_repulsion() repulsion and gravitation for each link - equivalent for desmosomes between cells
+	// f_restoring() restoring force for each node
+	// F_pressure() internal pressure for each node
 
-	void f_repulsion() noexcept;
+	void f_repulsion(const std::vector< stable_cell_t > neighbors, double search_radius) noexcept;
 
 	void f_restoring() noexcept;
 
 	void f_pressure() noexcept;
-
-	// F_gravitation() gravitation for each link
-	// F_repulsion() repulsion for each link
-	// f_restoring() restoring force for each node
-	// F_pressure() internal pressure for each node
 };
 
 class StableCell : public Cell
 {
 public:
 	using stable_cell_t = std::shared_ptr < StableCell >;
+
+
 	enum class State
 	{
 		healthy,
@@ -66,27 +67,27 @@ public:
 		recovered
 	};
 private:
-	State m_state = State::healthy;
-	std::vector<Cell*> m_neighbors;
-	bool m_flag = false;
+	double m_cell_size; // normal length of link
+	State m_state;
+	State new_state;
+	//std::vector<Cell*> m_neighbors;
+	//bool m_flag = false;
 
 public:
 
 	StableCell() noexcept = default;
 
-	// via nodes
-	//StableCell(const std::vector<Node>& points)
-	//{
-	//	nodes = points;
-
-	//	// creating links and setting left and right
-	//	// m_area
-	//}
-
-	StableCell(const Node& left_top)
+	explicit StableCell(double cell_size, const point_t& left_top) noexcept :
+		m_cell_size(cell_size), m_state(State::healthy)
 	{
-		// ...
+		initialize(left_top);
 	}
+
+private:
+
+	void initialize(const point_t& left_top);
+
+public:
 
 	State get_state()
 	{
@@ -95,104 +96,105 @@ public:
 
 	void set_state(State state)
 	{
-		m_state = state;
+		new_state = state;
 	}
 
-	bool get_flag()
+	void change_state()
 	{
-		return m_flag;
+		m_state = new_state;
 	}
 
-	void set_flag(bool flag)
-	{
-		m_flag = flag;
-	}
+	//bool get_flag()
+	//{
+	//	return m_flag;
+	//}
 
-	// searching for stablecells for automation
-	// distance(m_centre, cell_centre) < search_radius
-	void get_neighbors(const WorkingSpace& tissue) noexcept;
+	//void set_flag(bool flag)
+	//{
+	//	m_flag = flag;
+	//}
 
 	// cellular automation
-	auto next_state(const std::chrono::milliseconds& timer,
-		const std::vector< stable_cell_t >& neighbors) noexcept;
+	State next_state(
+		const std::vector< stable_cell_t >& neighbors, bool virus_traits) const noexcept;
 
 	// function call for each node
 	virtual void next_pos() const noexcept override;
 
 };
 
-class ImmuneCell : public Cell
-{
-protected:
-
-	double m_velocity;			// absolute value for velocity
-	t_point m_direction;	// direction for velocity
-
-public:
-
-	ImmuneCell() noexcept = default;
-
-	virtual ~ImmuneCell() noexcept = default;
-
-	virtual t_point set_direction(const WorkingSpace& tissue) const = 0;
-
-	virtual void next_pos() const override = 0;
-};
-
-class Lymphocyte : public ImmuneCell
-{
-
-public:
-
-	Lymphocyte() noexcept = default;
-
-	// via nodes and velocity
-	explicit Lymphocyte(const std::vector<Node>& points, double velocity)  noexcept
-	{
-		m_velocity = velocity;
-		nodes = points;
-
-		// creating links and setting left and right
-		// m_area
-	}
-
-	// random direction
-	virtual t_point set_direction(const WorkingSpace& tissue) const override;
-
-	// changing velocity in case of ill cells nearby
-	void update_velocity() noexcept;
-
-	// searching for ill or recovered cells
-	// distance(m_centre, cell_centre) < search_radius
-	void sensor(const WorkingSpace& tissue) noexcept;
-
-	// function call for each node
-	// add m_velosity
-	virtual void next_pos() const noexcept override;
-};
-
-class Fagocyte : public ImmuneCell
-{
-public:
-
-	Fagocyte() noexcept = default;
-
-	// via nodes and velocity
-	explicit Fagocyte(const std::vector<Node>& points, double velocity) noexcept
-	{
-		m_velocity = velocity;
-		nodes = points;
-
-		// creating links and setting left and right
-		// m_area
-	}
-
-	virtual t_point set_direction(const WorkingSpace& tissue) const noexcept override;
-
-	// delete ill or recovered cells
-	void kill(const WorkingSpace& tissue) noexcept;
-
-	// function call for each node
-	// add m_velosity
-	virtual void next_pos() const noexcept override;
-};
+//class ImmuneCell : public Cell
+//{
+//protected:
+//
+//	double m_velocity;			// absolute value for velocity
+//	point_t m_direction;	// direction for velocity
+//
+//public:
+//
+//	ImmuneCell() noexcept = default;
+//
+//	virtual ~ImmuneCell() noexcept = default;
+//
+//	virtual point_t set_direction(const WorkingSpace& tissue) const = 0;
+//
+//	virtual void next_pos() const override = 0;
+//};
+//
+//class Lymphocyte : public ImmuneCell
+//{
+//
+//public:
+//
+//	Lymphocyte() noexcept = default;
+//
+//	// via nodes and velocity
+//	explicit Lymphocyte(const std::vector<Node>& points, double velocity)  noexcept
+//	{
+//		m_velocity = velocity;
+//		nodes = points;
+//
+//		// creating links and setting left and right
+//		// m_area
+//	}
+//
+//	// random direction
+//	virtual point_t set_direction(const WorkingSpace& tissue) const override;
+//
+//	// changing velocity in case of ill cells nearby
+//	void update_velocity() noexcept;
+//
+//	// searching for ill or recovered cells
+//	// distance(m_centre, cell_centre) < search_radius
+//	void sensor(const WorkingSpace& tissue) noexcept;
+//
+//	// function call for each node
+//	// add m_velosity
+//	virtual void next_pos() const noexcept override;
+//};
+//
+//class Fagocyte : public ImmuneCell
+//{
+//public:
+//
+//	Fagocyte() noexcept = default;
+//
+//	// via nodes and velocity
+//	explicit Fagocyte(const std::vector<Node>& points, double velocity) noexcept
+//	{
+//		m_velocity = velocity;
+//		nodes = points;
+//
+//		// creating links and setting left and right
+//		// m_area
+//	}
+//
+//	virtual point_t set_direction(const WorkingSpace& tissue) const noexcept override;
+//
+//	// delete ill or recovered cells
+//	void kill(const WorkingSpace& tissue) noexcept;
+//
+//	// function call for each node
+//	// add m_velosity
+//	virtual void next_pos() const noexcept override;
+//};
