@@ -1,40 +1,44 @@
 #pragma once
 
+#include <memory>
+
 #include "functions.h"
 #include "node.h"
 
 class Link
 {
+public:
+
+	using point_t = std::pair <double, double>;
+	using node_t = std::shared_ptr < Node >;
+
 private:
 
 	double m_length;
 
-	Node l_node, r_node;
+	node_t l_node, r_node;
 
 public:
 	Link() noexcept = default;
 
-	explicit Link(const Node& left, const Node& right) noexcept :
-		l_node(left), r_node(right)
-	{
-		this->set_length();
-	}
+	explicit Link(const node_t right, const node_t left) noexcept :
+		l_node(left), r_node(right), m_length(distance(l_node->get_pos(), r_node->get_pos()))
+	{}
 
 	~Link() noexcept = default;
 
-public: 
+public:
 
-	const double get_length() const noexcept
+	const double count_length() const noexcept
 	{
-		return m_length;
+		return distance(l_node->get_pos(), r_node->get_pos());
 	}
 
-	void set_length()
-	{
-		m_length = distance(l_node.get_pos(), r_node.get_pos());
-	}
+	void find_restoring() noexcept;
 
-	const Node get_left_node() const noexcept
+	void find_repulsion(const std::vector< node_t > nodes, double search_radius) noexcept;
+
+	/*const Node get_left_node() const noexcept
 	{
 		return l_node;
 	}
@@ -52,6 +56,6 @@ public:
 	void set_right_node(Node new_right)
 	{
 		r_node = new_right;
-	}
+	}*/
 
 };
