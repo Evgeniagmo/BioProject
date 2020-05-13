@@ -3,6 +3,7 @@
 #include <chrono>
 #include <memory>
 #include <thread>
+#include <random>
 #include <vector>
 
 #include "cells.h"
@@ -28,8 +29,8 @@ private:
 	point_t m_left_top = std::make_pair(0.0, 0.0);
 	point_t m_right_bottom;
 
-	double m_virus_concentration;
-	double m_virus_traits;
+	double m_virus_concentration; // to initialize contamination (from 0 to 1)
+	bool m_virus_traits; // cell can recover = true (else = false)
 
 public:
 
@@ -38,7 +39,7 @@ public:
 	// width and height in microns
 	explicit WorkingSpace(
 		double width, double height,
-		double concentration, double virus_traits) noexcept :
+		double concentration, bool virus_traits) noexcept :
 		m_right_bottom(std::make_pair(width, height)),
 		m_virus_concentration(concentration), m_virus_traits(virus_traits)
 	{
@@ -55,6 +56,7 @@ public:
 
 	auto get_neighbors(stable_cell_t cell) const noexcept;
 
-	void calc_next_state(const std::chrono::milliseconds& timer) noexcept;
+	// calculating next state and next position
+	void calc_next() noexcept;
 
 };

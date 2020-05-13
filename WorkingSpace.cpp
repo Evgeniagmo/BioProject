@@ -22,6 +22,20 @@ void WorkingSpace::initialize()
 					intercellular_space_size + period * j)));
 		}
 	}
+
+	// set the state of the border cells to initialize the contamination
+	for (std::size_t it = 0; it < counter_x; ++it)
+	{
+		std::default_random_engine dre;
+		std::uniform_int_distribution<int> uid(1, 1000);
+		int random_num = uid(dre);
+
+		if (random_num < m_virus_concentration * 1000) // in proportion to virus_concentration
+		{
+			all_stable[it]->set_state(StableCell::State::ill); // else: remain healthy
+		}
+
+	}
 }
 
 auto WorkingSpace::get_neighbors(stable_cell_t cell) const noexcept
@@ -29,17 +43,17 @@ auto WorkingSpace::get_neighbors(stable_cell_t cell) const noexcept
 	std::vector< stable_cell_t > neighbors;
 
 	// distance(m_centre, cell_centre) < search_radius
-	// it needs optimization (too slow, uses getters)
+	// it needs optimization (too slow, uses getters
 	for (stable_cell_t stable : all_stable)
 	{
-		if (distance(stable->get_centre(), cell->get_centre()) < search_radius)
+		if (distance(stable->count_centre(), cell->count_centre()) < search_radius)
 			neighbors.push_back(stable);
 	}
 
 	return neighbors;
 }
 
-void WorkingSpace::calc_next_state(const std::chrono::milliseconds& timer) noexcept
+void WorkingSpace::calc_next() noexcept
 {
 	auto threads_number = std::thread::hardware_concurrency();
 
@@ -60,8 +74,12 @@ void WorkingSpace::calc_next_state(const std::chrono::milliseconds& timer) noexc
 		for (std::size_t it = first_cell; it < last_cell; ++it)
 		{
 			std::vector< stable_cell_t > neighbors = get_neighbors(all_stable[it]);
-			// optimization: count first, then fill
-			all_stable[it]->set_state(all_stable[it]->next_state(timer, neighbors));
+			// count new state, not fill
+			all_stable[it]->set_state(all_stable[it]->next_state(neighbors, m_virus_traits));
+			// count displacement
+			all_stable[it]->f_pressure();
+			all_stable[it]->f_restoring();
+			all_stable[it]->f_repulsion(neighbors, search_radius);
 		}
 	};
 
