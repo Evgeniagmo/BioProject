@@ -32,7 +32,8 @@ void WorkingSpace::initialize()
 
 		if (random_num < m_virus_concentration * 1000) // in proportion to virus_concentration
 		{
-			all_stable[it]->set_state(StableCell::State::ill); // else: remain healthy
+			all_stable[it]->set_new_state(StableCell::State::ill); // else: remain healthy
+			all_stable[it]->change_state();
 		}
 
 	}
@@ -75,7 +76,7 @@ void WorkingSpace::calc_next() noexcept
 		{
 			std::vector< stable_cell_t > neighbors = get_neighbors(all_stable[it]);
 			// count new state, not fill
-			all_stable[it]->set_state(all_stable[it]->next_state(neighbors, m_virus_traits));
+			all_stable[it]->set_new_state(all_stable[it]->next_state(neighbors, m_virus_traits));
 			// count displacement
 			all_stable[it]->f_pressure();
 			all_stable[it]->f_restoring();
@@ -96,5 +97,31 @@ void WorkingSpace::calc_next() noexcept
 	for (std::size_t i = 0; i < threads_number; ++i)
 	{
 		threads[i].join();
+	}
+}
+
+void WorkingSpace::set_next()
+{
+	for (auto it = all_stable.begin(); it != all_stable.end(); )
+	{
+		(*it)->change_state();
+		if ((*it)->get_state() != StableCell::State::dead)
+		{
+			(*it)->move();
+			++it;
+		}
+		else
+		{
+			it = all_stable.erase(it);
+		}
+	}
+}
+
+std::vector <std::vector <double> > WorkingSpace::data_to_send() noexcept
+{
+	std::vector <std::vector <double> > numbers;
+	for (stable_cell_t cell : all_stable)
+	{
+		numbers.push_back(cell->pos_state_to_numbers());
 	}
 }

@@ -18,7 +18,7 @@ public:
 
 private:
 
-	std::vector < stable_cell_t > all_stable, all_lymphocytes, all_fagocytes;
+	std::vector < stable_cell_t > all_stable; // all_lymphocytes, all_fagocytes;
 
 	const double epithelial_cell_size = 12.7; // <L> = 12,7 microns
 
@@ -52,11 +52,21 @@ private:
 
 	void initialize();
 
-public:
-
+	// checking the distance between two centers
 	auto get_neighbors(stable_cell_t cell) const noexcept;
+
+public:
 
 	// calculating next state and next position
 	void calc_next() noexcept;
+
+	// set next state and next position, remove dead
+	void set_next();
+
+
+	// check_collisions
+
+
+	std::vector <std::vector <double> > data_to_send() noexcept;
 
 };
