@@ -68,6 +68,14 @@ void Cell::f_pressure() noexcept
 	}
 }
 
+void Cell::move() noexcept
+{
+	for (node_t node : m_nodes)
+	{
+		node->set_pos();
+	}
+}
+
 void StableCell::initialize(const point_t& left_top)
 {
 	// setting nodes, counterclock-wise
@@ -143,8 +151,28 @@ StableCell::State StableCell::next_state(
 	}
 }
 
-void StableCell::next_pos() const noexcept
-{}
+
+std::vector <double> StableCell::pos_state_to_numbers() const noexcept
+{
+	// coordinates of nodes + state
+	std::vector <double> numbers;
+	for (node_t node : m_nodes)
+	{
+		numbers.push_back(node->get_pos().first);
+		numbers.push_back(node->get_pos().second);
+	}
+
+	// State to double
+	double state_num;
+	switch (m_state)
+	{
+	case State::healthy: state_num = 0.0;
+	case State::ill: state_num = 1.0;
+	case State::recovered: state_num = 2.0;
+	}
+	numbers.push_back(state_num);
+	return numbers;
+}
 
 //point_t Lymphocyte::set_direction(const WorkingSpace& tissue) const
 //{

@@ -27,7 +27,7 @@ void Link::find_repulsion(const std::vector< node_t > nodes, double search_radiu
 	for (node_t node : nodes)
 	{
 		// vector from one end of link to other cell's node
-		point_t dist = make_vector(l_node->get_pos, node->get_pos());
+		point_t dist = make_vector(l_node->get_pos(), node->get_pos());
 
 		// projection on the normal vector
 		point_t projection = std::make_pair(dist.first * normal.first, dist.second * normal.second);

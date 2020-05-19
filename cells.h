@@ -9,6 +9,7 @@
 #include "link.h"
 #include "functions.h"
 
+class StableCell;
 class Cell
 {
 public:
@@ -20,7 +21,7 @@ protected:
 	std::vector <node_t> m_nodes;
 	std::vector <Link> m_links;
 
-	double m_area;
+	double m_area = 0.0;
 
 public:
 	Cell() noexcept = default;
@@ -40,8 +41,6 @@ public:
 		return m_nodes;
 	}
 
-	virtual void next_pos() const noexcept = 0;
-
 	// f_repulsion() repulsion and gravitation for each link - equivalent for desmosomes between cells
 	// f_restoring() restoring force for each node
 	// F_pressure() internal pressure for each node
@@ -51,6 +50,9 @@ public:
 	void f_restoring() noexcept;
 
 	void f_pressure() noexcept;
+
+	void move() noexcept;
+
 };
 
 class StableCell : public Cell
@@ -83,6 +85,7 @@ public:
 		initialize(left_top);
 	}
 
+
 private:
 
 	void initialize(const point_t& left_top);
@@ -94,7 +97,7 @@ public:
 		return this->m_state;
 	}
 
-	void set_state(State state)
+	void set_new_state(State state)
 	{
 		new_state = state;
 	}
@@ -118,8 +121,13 @@ public:
 	State next_state(
 		const std::vector< stable_cell_t >& neighbors, bool virus_traits) const noexcept;
 
-	// function call for each node
-	virtual void next_pos() const noexcept override;
+public:
+
+	// {x1, y1, ... y4, state_num}
+	// healthy - 0
+	// ill - 1
+	// recovered - 2
+	std::vector <double> pos_state_to_numbers() const noexcept;
 
 };
 
