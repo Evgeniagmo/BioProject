@@ -32,9 +32,9 @@ public:
 		return m_pos;
 	}
 
-	void set_pos(const point_t& pos)
+	void set_pos()
 	{
-		m_pos = pos;
+		m_pos = m_displacement;
 	}
 
 	const point_t get_displacement() const noexcept
