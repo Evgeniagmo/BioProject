@@ -2,23 +2,28 @@
 
 #include <vector>
 
+#include "functions.h"
+
 using point_t = std::pair<double, double>;
 
 class Node
 {
 private:
 
-	point_t m_pos;
+	point_t m_pos = std::make_pair(0, 0);
 
-	point_t m_displacement; // for movement on each iteraction
+	// for movement on each iteraction and fixig collisions
+	point_t m_displacement = std::make_pair(0, 0);
 
 public:
 
 	Node() noexcept = default;
 
-	explicit Node(const point_t& pos) noexcept : m_pos(pos)
+	// via position
+	explicit Node(const point_t pos) noexcept : m_pos(pos)
 	{}
 
+	// via x and y
 	explicit Node(double first, double second) noexcept :
 		m_pos(std::make_pair(first, second))
 	{}
@@ -32,6 +37,8 @@ public:
 		return m_pos;
 	}
 
+	// set new position after calculating forces and before fixing intersections
+	// update displacement before next iteraction
 	void set_pos()
 	{
 		m_pos = m_displacement;
@@ -42,8 +49,11 @@ public:
 		return m_displacement;
 	}
 
-	// displacement updates on each iteraction
-	void add_displacement(const point_t& displacement) noexcept;
+	// displacement updates on each iteraction after each function calculating forces
+	void add_displacement(const point_t displacement) noexcept;
 
 	void add_displacement(double x, double y) noexcept;
+
+	// after calculating all forces it fixes intersection between the displacement vector and other cells
+	void check_displacement(point_t a, point_t b) noexcept;
 };

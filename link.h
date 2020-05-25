@@ -22,7 +22,7 @@ public:
 	Link() noexcept = default;
 
 	explicit Link(const node_t right, const node_t left) noexcept :
-		l_node(left), r_node(right), m_length(distance(l_node->get_pos(), r_node->get_pos()))
+		l_node(left), r_node(right), m_length(distance(left->get_pos(), right->get_pos()))
 	{}
 
 	~Link() noexcept = default;
@@ -34,28 +34,8 @@ public:
 		return distance(l_node->get_pos(), r_node->get_pos());
 	}
 
+	//forces on each iteraction
 	void find_restoring() noexcept;
-
 	void find_repulsion(const std::vector< node_t > nodes, double search_radius) noexcept;
-
-	/*const Node get_left_node() const noexcept
-	{
-		return l_node;
-	}
-
-	void set_left_node(Node new_left)
-	{
-		l_node = new_left;
-	}
-
-	const Node get_right_node() const noexcept
-	{
-		return r_node;
-	}
-
-	void set_right_node(Node new_right)
-	{
-		r_node = new_right;
-	}*/
 
 };

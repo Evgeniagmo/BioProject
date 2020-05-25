@@ -3,6 +3,9 @@
 
 #include "cells.h"
 
+
+// count center of current cell as center of mass
+// needed for sorting, updating neighbors
 point_t Cell::count_centre() const noexcept
 {
 	point_t centre = std::make_pair(0.0, 0.0);
@@ -16,6 +19,8 @@ point_t Cell::count_centre() const noexcept
 	return centre;
 }
 
+// count area of current cell
+// needed for F_pressure()
 double Cell::count_area() const noexcept
 {
 	double area = 0.0;
@@ -31,7 +36,7 @@ double Cell::count_area() const noexcept
 	return abs(area / 2.0);
 }
 
-void Cell::f_repulsion(const std::vector< stable_cell_t > neighbors, double search_radius) noexcept
+void Cell::f_repulsion(const std::vector< stable_cell_t >& neighbors, double search_radius) noexcept
 {
 	for (Link link : m_links)
 	{
@@ -68,15 +73,53 @@ void Cell::f_pressure() noexcept
 	}
 }
 
+
 void Cell::move() noexcept
 {
 	for (node_t node : m_nodes)
 	{
 		node->set_pos();
+		// reverse displacement before fixing collisions
+		node->add_displacement(node->get_displacement().first * (-2),
+			node->get_displacement().second * (-2));
 	}
 }
 
-void StableCell::initialize(const point_t& left_top)
+// check if any nodes of current cell are inside the given cell
+void Cell::check_intersection(const std::vector< node_t >& nodes) noexcept
+{
+	for (const node_t node : m_nodes)
+	{
+
+		const std::size_t size = nodes.size();
+
+		for (std::size_t i = 0; i < size; ++i)
+		{
+			node->check_displacement(nodes[i]->get_pos(), nodes[(i + 1) % size]->get_pos());
+		}
+
+		// displacement = 0 before next iteraction
+		node->add_displacement(node->get_displacement().first * (-1),
+			node->get_displacement().second * (-1));
+	}
+}
+
+//check if any nodes of current cell are outside the working space
+void Cell::check_borders(const std::vector <point_t>& borders) noexcept
+{
+	// for each node of the cell
+	for (const node_t node : m_nodes)
+	{
+		const std::size_t size = borders.size();
+
+		for (std::size_t i = 0; i < size; ++i)
+		{
+			node->check_displacement(borders[i], borders[(i + 1) % size]);
+		}
+	}
+}
+
+void StableCell::initialize(const point_t left_top)
 {
 	// setting nodes, counterclock-wise
 	m_nodes.push_back(std::make_shared < Node >(Node(left_top)));
@@ -95,19 +138,9 @@ void StableCell::initialize(const point_t& left_top)
 	m_area = m_cell_size * m_cell_size;
 }
 
-//void StableCell::get_neighbors(const WorkingSpace& tissue) noexcept
-//{
-//	std::vector<Cell*> neighbors;
-//	for_each(tissue.all_stable.cbegin(), tissue.all_stable.cend(),
-//		[neighbors, tissue, this](Cell* cell) {
-//			if (distance(m_centre, cell->get_centre()) < tissue.search_radius)
-//				neighbors.push_back(cell);
-//		});
-//	m_neighbors = neighbors;
-//}
 
 StableCell::State StableCell::next_state(
-	const std::vector< stable_cell_t >& neighbors, bool virus_traits) const noexcept
+	const std::vector< stable_cell_t > neighbors, bool virus_traits) const noexcept
 {
 	std::default_random_engine dre;
 	std::uniform_int_distribution<int> uid(1, 1000);

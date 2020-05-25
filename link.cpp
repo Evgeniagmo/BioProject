@@ -18,26 +18,25 @@ void Link::find_restoring() noexcept
 
 void Link::find_repulsion(const std::vector< node_t > nodes, double search_radius) noexcept
 {
-	// making vector from link
+	// making vector from link and normal vector to the link directed out of the cell
 	point_t vect = make_vector(l_node->get_pos(), r_node->get_pos());
 
-	// normal vector to the link directed out of the cell
 	point_t normal = norm(std::make_pair(vect.second, vect.first * (-1)));
 
 	for (node_t node : nodes)
 	{
 		// vector from one end of link to other cell's node
+		// and projection on the normal vector
 		point_t dist = make_vector(l_node->get_pos(), node->get_pos());
 
-		// projection on the normal vector
 		point_t projection = std::make_pair(dist.first * normal.first, dist.second * normal.second);
 
 		if (length(projection) < search_radius)
 		{
 			// gravitation -1/x^2 (to the link)
+			// repulsion 1/x^4 (from the link)
 			double gravitation = -1 / (length(projection) * length(projection));
 
-			// repulsion 1/x^4 (from the link)
 			double repulsion = gravitation * gravitation;
 
 			point_t displacement = std::make_pair(
