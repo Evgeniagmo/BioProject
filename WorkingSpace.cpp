@@ -29,11 +29,9 @@ void WorkingSpace::initialize()
 	}
 
 	// set the state of the border cells to initialize the contamination
-	std::default_random_engine dre;
-	std::uniform_int_distribution<int> uid(1, 1000);
 	for (std::size_t it = 0; it < counter_x; ++it)
 	{
-		int random_num = uid(dre);
+		int random_num = rand() % 1000;
 
 		if (random_num < m_virus_concentration * 1000) // in proportion to virus_concentration
 		{
@@ -57,13 +55,12 @@ auto WorkingSpace::get_neighbors(const stable_cell_t cell) const noexcept
 
 	const point_t cell_centre = cell->count_centre();
 
-	// distance(m_centre, cell_centre) < search_radius
-	// it needs optimization (too slow, uses getters
+	// distance(m_centre, cell_centre) < neighbour_radius
 	for (stable_cell_t stable : all_stable)
 	{
 		const double dist = distance(stable->count_centre(), cell_centre);
 
-		if (dist < search_radius * 3 && dist != 0.0)
+		if (dist < neighbour_radius && dist != 0.0)
 			neighbors.push_back(stable);
 	}
 
@@ -83,7 +80,7 @@ void WorkingSpace::calc_next() noexcept
 	//		// count displacement
 	//		all_stable[i]->f_pressure();
 	//		all_stable[i]->f_restoring();
-	//		all_stable[i]->f_repulsion(neighbors, search_radius);
+	//		all_stable[i]->f_repulsion(neighbors, repulsion_radius);
 	//	}
 
 	//}
@@ -112,7 +109,7 @@ void WorkingSpace::calc_next() noexcept
 			// count displacement
 			all_stable[i]->f_pressure();
 			all_stable[i]->f_restoring();
-			all_stable[i]->f_repulsion(neighbors, search_radius);
+			all_stable[i]->f_repulsion(neighbors, neighbour_radius);
 		}
 	};
 

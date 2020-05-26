@@ -28,21 +28,21 @@ double Cell::count_area() const noexcept
 	std::size_t j = m_nodes.size() - 1;
 	for (std::size_t i = 0; i < m_nodes.size(); i++)
 	{
-		area += (m_nodes[j]->get_pos().first + m_nodes[i]->get_pos().first) *
-			(m_nodes[j]->get_pos().second + m_nodes[i]->get_pos().second);
+		area += (m_nodes[j]->get_pos().first * m_nodes[i]->get_pos().second) -
+			(m_nodes[j]->get_pos().second * m_nodes[i]->get_pos().first);
 		j = i;
 	}
 
 	return abs(area / 2.0);
 }
 
-void Cell::f_repulsion(const std::vector< stable_cell_t >& neighbors, double search_radius) noexcept
+void Cell::f_repulsion(const std::vector< stable_cell_t >& neighbors, double repulsion_radius) noexcept
 {
 	for (Link link : m_links)
 	{
 		for (stable_cell_t neighbour : neighbors)
 		{
-			link.find_repulsion(neighbour->get_nodes(), search_radius);
+			link.find_repulsion(neighbour->get_nodes(), repulsion_radius);
 		}
 	}
 }
@@ -67,8 +67,8 @@ void Cell::f_pressure() noexcept
 
 		// calculating displacement
 		// 0.25 - for each of four nodes
-		vect_end.first -= vect_end.first * coef * 0.25;
-		vect_end.second -= vect_end.second * coef * 0.25;
+		vect_end.first *= (1 - coef) * 0.25;
+		vect_end.second *= (1 - coef) * 0.25;
 		node->add_displacement(vect_end);
 	}
 }
@@ -142,9 +142,7 @@ void StableCell::initialize(const point_t left_top)
 StableCell::State StableCell::next_state(
 	const std::vector< stable_cell_t > neighbors, bool virus_traits) const noexcept
 {
-	std::default_random_engine dre;
-	std::uniform_int_distribution<int> uid(1, 1000);
-	int random_num = uid(dre);
+	int random_num = rand() % 1000;
 
 	// counting ill neighbors
 	int counter_ill = 0;
@@ -154,32 +152,44 @@ StableCell::State StableCell::next_state(
 			counter_ill += 1;
 	}
 
-	double ill_concentration = counter_ill / neighbors.size();
+	double ill_concentration = 1000 * counter_ill / neighbors.size();
 
 	if (m_state == State::healthy)
 	{
-		if (random_num > ill_concentration * 1000) { return State::healthy; }
-		else { return State::ill; } // in proportion to ill_concentration
+		if (random_num > ill_concentration) {
+			std::cout << 0;
+			return State::healthy;					//-----------------------------
+		}
+		else {
+			std::cout << 1;
+			return State::ill;						//--------------------------------
+		} // in proportion to ill_concentration
 	}
 
 	if (m_state == State::ill)
 	{
 		if (!virus_traits) //can not recover
 		{
-			if (random_num > ill_concentration * 1000) { return State::ill; }
-			else { return State::dead; } // in proportion to ill_concentration
+			if (random_num > ill_concentration) {
+				std::cout << 1;
+				return State::ill;
+			}
+			else {
+				std::cout << 1;
+				return State::ill;
+			} // in proportion to ill_concentration				-------------------------------------ill to dead
 		}
 		else // can recover
 		{
-			if (random_num > ill_concentration * 1000) { return State::ill; }
-			else if (random_num < ill_concentration * 500) { return State::recovered; }
+			if (random_num > ill_concentration) { return State::ill; }
+			else if (random_num < ill_concentration / 2) { return State::recovered; }
 			else { return State::dead; }	// equally likely to die or recover
 		}
 	}
 
 	if (m_state == State::recovered)
 	{
-		if (random_num > ill_concentration * 1000) { return State::recovered; }
+		if (random_num > ill_concentration) { return State::recovered; }
 		else { return State::ill; } // in proportion to ill_concentration
 	}
 }
@@ -199,11 +209,25 @@ std::vector <double> StableCell::pos_state_to_numbers() const noexcept
 	double state_num;
 	switch (m_state)
 	{
-	case State::healthy: state_num = 0.0;
-	case State::ill: state_num = 1.0;
-	case State::recovered: state_num = 2.0;
+	case State::healthy:
+	{
+		state_num = 0.0;
+		break;
+	}
+	case State::ill:
+	{
+		state_num = 1.0;
+		break;
+	}
+	case State::recovered:
+	{
+		state_num = 2.0;
+		break;
+	}
 	}
 	numbers.push_back(state_num);
+	std::cout << numbers[4] << " " << numbers[5] << " ";
+	std::cout << state_num << std::endl;						//--------------------------------------------------------
 	return numbers;
 }
 

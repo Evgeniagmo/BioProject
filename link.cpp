@@ -16,7 +16,7 @@ void Link::find_restoring() noexcept
 	l_node->add_displacement(vect_end.first * (-1), vect_end.second * (-1));
 }
 
-void Link::find_repulsion(const std::vector< node_t > nodes, double search_radius) noexcept
+void Link::find_repulsion(const std::vector< node_t > nodes, double repulsion_radius) noexcept
 {
 	// making vector from link and normal vector to the link directed out of the cell
 	point_t vect = make_vector(l_node->get_pos(), r_node->get_pos());
@@ -31,11 +31,13 @@ void Link::find_repulsion(const std::vector< node_t > nodes, double search_radiu
 
 		point_t projection = std::make_pair(dist.first * normal.first, dist.second * normal.second);
 
-		if (length(projection) < search_radius)
+		double projection_length = length(projection);
+
+		if (projection_length < repulsion_radius && projection_length != 0)
 		{
 			// gravitation -1/x^2 (to the link)
 			// repulsion 1/x^4 (from the link)
-			double gravitation = -1 / (length(projection) * length(projection));
+			double gravitation = -0.001 / length(projection);
 
 			double repulsion = gravitation * gravitation;
 

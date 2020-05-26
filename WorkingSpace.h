@@ -22,7 +22,9 @@ private:
 
 	const double intercellular_space_size = 0.03; // <L> =  30 nm
 
-	const double search_radius = 0.75 * epithelial_cell_size; // 1.5 link length
+	const double neighbour_radius = 1.5 * epithelial_cell_size; // 1.5 link length
+
+	const double repulsion_radius = 0.1 * intercellular_space_size;
 
 	std::vector < stable_cell_t > all_stable; // all_lymphocytes, all_fagocytes;
 

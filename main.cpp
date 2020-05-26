@@ -7,6 +7,8 @@
 
 int main(int argc, char** argv)
 {
+	srand(time(NULL));
+
 	const std::size_t size = 25;
 
 	auto port = 8000;
@@ -28,104 +30,106 @@ int main(int argc, char** argv)
 
 	std::chrono::milliseconds timer(0);
 
-	std::chrono::milliseconds test(3000);
+	std::chrono::milliseconds test(1000);
 
-	//WorkingSpace working_space(
-	//	200, 20,
-	//	0.5, 0);
+	WorkingSpace working_space(
+		200, 20,
+		0.5, 0);
 
-	//std::chrono::steady_clock::time_point time_point = std::chrono::steady_clock::now();
+	std::chrono::steady_clock::time_point time_point = std::chrono::steady_clock::now();
 
-	//while (timer < test)
+	while (timer < test)
+	{
+		timer += std::chrono::duration_cast <std::chrono::milliseconds> (
+			std::chrono::steady_clock::now() - time_point);
+
+		time_point = std::chrono::steady_clock::now();
+
+		working_space.calc_next();
+		working_space.collision_update();
+		working_space.set_next();
+
+		cells = working_space.data_to_send();
+
+		ill_counter = working_space.statistics_to_send();
+
+		current_time = time_to_send(timer);
+
+		//std::cout << ill_counter << std::endl;
+
+		std::cout << std::endl;
+
+		std::cout << current_time << std::endl;
+
+	}
+
+	//try
 	//{
-	//	timer += std::chrono::duration_cast <std::chrono::milliseconds> (
-	//		std::chrono::steady_clock::now() - time_point);
+	//	boost::asio::ip::tcp::acceptor acceptor(io_service, endpoint.protocol());
 
-	//	time_point = std::chrono::steady_clock::now();
+	//	acceptor.bind(endpoint);
 
-	//	working_space.calc_next();
-	//	working_space.collision_update();
-	//	working_space.set_next();
+	//	acceptor.listen(size);
 
-	//	cells = working_space.data_to_send();
+	//	boost::asio::ip::tcp::socket socket(io_service);
 
-	//	ill_counter = working_space.statistics_to_send();
+	//	acceptor.accept(socket);
 
-	//	current_time = time_to_send(timer);
+	//	std::cout << "connection" << std::endl;
 
-	//	std::cout << ill_counter << std::endl;
+	//	initial_cond = read_data_until(socket);
 
-	//	std::cout << current_time << std::endl;
+	//	std::cout << "data received" << std::endl;
+
+	//	double width = read_data_from(initial_cond);
+	//	double height = read_data_from(initial_cond);
+	//	double concentration = read_data_from(initial_cond);
+	//	bool virus_traits = read_data_from(initial_cond);
+
+	//	std::cout << "data is ready" << std::endl;
+
+	//	//system("pause");
+
+	//	WorkingSpace working_space(
+	//		width, height,
+	//		concentration, virus_traits);
+
+	//	std::chrono::steady_clock::time_point time_point = std::chrono::steady_clock::now();
+
+	//	while (timer < test)
+	//	{
+	//		timer += std::chrono::duration_cast <std::chrono::milliseconds> (
+	//			std::chrono::steady_clock::now() - time_point);
+
+	//		time_point = std::chrono::steady_clock::now();
+
+	//		working_space.calc_next();
+	//		working_space.collision_update();
+	//		working_space.set_next();
+
+	//		cells = working_space.data_to_send();
+
+	//		ill_counter = working_space.statistics_to_send();
+
+	//		current_time = time_to_send(timer);
+
+	//		//write_data(socket, cells);
+	//		
+	//		write_data(socket, ill_counter);
+
+	//		//write_data(socket, current_time);
+
+	//	}
 
 	//}
+	//catch (boost::system::system_error & e)
+	//{
+	//	std::cout << "Error occured! Error code = " << e.code() << ". Message: " << e.what() << std::endl;
 
-	try
-	{
-		boost::asio::ip::tcp::acceptor acceptor(io_service, endpoint.protocol());
+	//	system("pause");
 
-		acceptor.bind(endpoint);
-
-		acceptor.listen(size);
-
-		boost::asio::ip::tcp::socket socket(io_service);
-
-		acceptor.accept(socket);
-
-		std::cout << "connection" << std::endl;
-
-		initial_cond = read_data_until(socket);
-
-		std::cout << "data received" << std::endl;
-
-		double width = read_data_from(initial_cond);
-		double height = read_data_from(initial_cond);
-		double concentration = read_data_from(initial_cond);
-		bool virus_traits = read_data_from(initial_cond);
-
-		std::cout << "data is ready" << std::endl;
-
-		//system("pause");
-
-		WorkingSpace working_space(
-			width, height,
-			concentration, virus_traits);
-
-		std::chrono::steady_clock::time_point time_point = std::chrono::steady_clock::now();
-
-		while (timer < test)
-		{
-			timer += std::chrono::duration_cast <std::chrono::milliseconds> (
-				std::chrono::steady_clock::now() - time_point);
-
-			time_point = std::chrono::steady_clock::now();
-
-			working_space.calc_next();
-			working_space.collision_update();
-			working_space.set_next();
-
-			cells = working_space.data_to_send();
-
-			ill_counter = working_space.statistics_to_send();
-
-			current_time = time_to_send(timer);
-
-			//write_data(socket, cells);
-
-			write_data(socket, ill_counter);
-
-			//write_data(socket, current_time);
-
-		}
-
-	}
-	catch (boost::system::system_error & e)
-	{
-		std::cout << "Error occured! Error code = " << e.code() << ". Message: " << e.what() << std::endl;
-
-		system("pause");
-
-		return e.code().value();
-	}
+	//	return e.code().value();
+	//}
 
 
 

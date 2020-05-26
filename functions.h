@@ -9,8 +9,12 @@
 #include <vector>
 #include <iomanip>
 #include <chrono>
+#include <cstdlib>
+#include <ctime>
 
 using point_t = std::pair <double, double>;
+
+
 
 // distance between two points
 inline double distance(const point_t& left, const point_t& right) noexcept
@@ -35,7 +39,9 @@ inline point_t norm(const point_t& vector) noexcept
 {
 	const auto l = length(vector);
 
-	return std::make_pair(vector.first / l, vector.second / l);
+	if (l) { return std::make_pair(vector.first / l, vector.second / l); }
+	else { return std::make_pair(0, 0); }
+
 }
 
 // center of given vector

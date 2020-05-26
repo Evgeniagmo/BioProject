@@ -41,17 +41,22 @@ public:
 		return m_nodes;
 	}
 
-	// f_repulsion() repulsion and gravitation for each link - equivalent for desmosomes between cells
-	// f_restoring() restoring force for each node
+	// f_repulsion() repulsion and gravitation for each link - equivalent for molecular connections between cells
+	// f_restoring() restoring force for each link 
 	// F_pressure() internal pressure for each node
 
-	void f_repulsion(const std::vector< stable_cell_t > neighbors, double search_radius) noexcept;
+	void f_repulsion(const std::vector< stable_cell_t >& neighbors, double search_radius) noexcept;
 
 	void f_restoring() noexcept;
 
 	void f_pressure() noexcept;
 
 	void move() noexcept;
+
+	// check intersections between two cells and between cell and borders
+	void check_intersection(const std::vector< node_t >& nodes) noexcept;
+
+	void check_borders(const std::vector <point_t>& borders) noexcept;
 
 };
 
@@ -79,25 +84,24 @@ public:
 
 	StableCell() noexcept = default;
 
-	explicit StableCell(double cell_size, const point_t& left_top) noexcept :
+	explicit StableCell(double cell_size, const point_t left_top) noexcept :
 		m_cell_size(cell_size), m_state(State::healthy)
 	{
 		initialize(left_top);
 	}
 
-
 private:
 
-	void initialize(const point_t& left_top);
+	void initialize(const point_t left_top);
 
 public:
 
-	State get_state()
+	State get_state() const noexcept
 	{
 		return this->m_state;
 	}
 
-	void set_new_state(State state)
+	void set_new_state(const State& state)
 	{
 		new_state = state;
 	}
@@ -107,22 +111,13 @@ public:
 		m_state = new_state;
 	}
 
-	//bool get_flag()
-	//{
-	//	return m_flag;
-	//}
-
-	//void set_flag(bool flag)
-	//{
-	//	m_flag = flag;
-	//}
-
 	// cellular automation
 	State next_state(
-		const std::vector< stable_cell_t >& neighbors, bool virus_traits) const noexcept;
+		const std::vector< stable_cell_t > neighbors, bool virus_traits) const noexcept;
 
 public:
 
+	// making vector for client
 	// {x1, y1, ... y4, state_num}
 	// healthy - 0
 	// ill - 1
